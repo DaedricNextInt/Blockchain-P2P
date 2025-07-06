@@ -25,10 +25,10 @@ public:
     static bool verify(const string& publicKey, const string& data, const string& signature);
 
 private: 
-    RSA* rsa_key_;
-    string public_key_str_;
-    string private_key_str_;
-    string address_;
+    RSA* rsa_key;
+    string public_key_str;
+    string private_key_str;
+    string address;
 };
 
 
