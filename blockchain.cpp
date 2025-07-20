@@ -75,6 +75,31 @@ string Block::calculateHash()
     return Crypto::sha256(previous_hash + to_string(timestamp) + tx_hashes + to_string(nonce));
 }
 
+// Proof of Work (Mining) algorithm
+void Block::mineBlock(int difficulty) 
+{
+    // Starting the hash with a string of zeros
+    string target(difficulty, '0');
+    // Recalcuting the hash until it meets the target
+    while (hash.substr(0, difficulty) != target) 
+    {
+        nonce++;
+        hash = calculateHash();
+    }
+    cout << "Block mined: " << hash << endl;
+}
 
-
+// Validating all transactions within the Block
+bool Block::isValidTransaction()
+{
+    for(const auto& tx : transactions)
+    {
+        if (!tx.isValid()) 
+        {
+            cout << "Invalid transaction: " << tx.id << endl;
+            return false;
+        }
+    }
+    return true;
+}
 

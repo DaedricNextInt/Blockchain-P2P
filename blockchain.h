@@ -33,7 +33,7 @@ public:
     string getHast();
     string getPreviousHash();
     void mineBlock(int difficulty);
-    bool hasValidTransactions();
+    bool isValidTransaction();
     string serialize();
     static Block deserialize(const string& data);
 private:
