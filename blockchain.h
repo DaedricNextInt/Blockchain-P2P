@@ -19,10 +19,10 @@ struct Transaction
     string file_metadata; // For file transfers
     time_t timestamp;
     string signature;
-    string calculate_Hash();
-    string serializer();
-    Transaction deserializer(const string& data);
-    bool isValid();
+    string calculate_Hash() const;
+    string serializer() const;
+    static Transaction deserializer(const string& data);
+    bool isValid() const;
 };
 
 // Class - [Block] for representation of a block within a blockchain
@@ -30,8 +30,8 @@ class Block {
 public: 
     Block(time_t timestamp, vector<Transaction> transactions, string previous_hash);
 
-    string getHast();
-    string getPreviousHash();
+    string getHash(){return hash;}
+    string getPreviousHash() const {return previous_hash;}
     void mineBlock(int difficulty);
     bool isValidTransaction();
     string serialize();
@@ -49,8 +49,8 @@ private:
 class Blockchain {
 public: 
     Blockchain();
-    void addBlock(Block new_block);
-    Block getLatestBlock();
+    void addBlock(const Block& new_block);
+    Block getLatestBlock() const;
     bool isChainValid();
     void minePendingTransaction(const string& miner_addr);
     void addTransaction(const Transaction& tx);
@@ -60,9 +60,10 @@ public:
     vector<Block> getChain();
     void replaceChain(const vector<Block>& new_chain);
 private:
-    vector<Block> chain_;
-    vector<Transaction> pending_transactions_;
-    int difficulty_;
+    vector<Block> chain;
+    vector<Transaction> pending_transactions;
+    int difficulty;
+    double mining_reward;
 
 };
 

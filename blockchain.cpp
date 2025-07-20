@@ -5,7 +5,7 @@
 using namespace std;
 
 /*Transaction*/
-string Transaction::calculate_Hash()
+string Transaction::calculate_Hash() const
 {
     return Crypto::sha256(sending_address + receiving_address +
          to_string(amount) + to_string(timestamp));
@@ -13,7 +13,7 @@ string Transaction::calculate_Hash()
 
 // A transaction is only valid if its signature can be 
 // verified with the sender's [public key].
-bool Transaction::isValid()
+bool Transaction::isValid() const
 {
     if (sending_address == "0") // Reward for Proof of Work (Mining)
     {
@@ -31,10 +31,11 @@ bool Transaction::isValid()
 
 
 // Converts each transaction to a string to be sent over the network
-string Transaction::serializer()
+string Transaction::serializer() const
 {
     stringstream ss;
-    ss << id << "," << sending_address << "," << receiving_address << "," << amount << "," << timestamp << "," << signature;
+    ss << id << "," << sending_address << "," << receiving_address 
+    << "," << amount << "," << timestamp << "," << signature;
     return ss.str();
 }
 
@@ -63,8 +64,9 @@ Block::Block(time_t timestamp, vector<Transaction> transactions, string previous
     hash = calculateHash(); 
 }
 
-// The block's hashed info is all of the data from thisa block and previous blocks
-// This is what forms the blockchain as it's a hash of all linked blocks [blockchain]
+// The block's hashed info is all of the data from this 
+// a block and previous blocks. This is what forms the 
+// blockchain as it's a hash of all linked blocks [blockchain]
 string Block::calculateHash() 
 {
     string tx_hashes;
@@ -72,7 +74,8 @@ string Block::calculateHash()
     {
         tx_hashes += tx.id;
     }
-    return Crypto::sha256(previous_hash + to_string(timestamp) + tx_hashes + to_string(nonce));
+    return Crypto::sha256(previous_hash + to_string(timestamp) 
+    + tx_hashes + to_string(nonce));
 }
 
 // Proof of Work (Mining) algorithm
@@ -103,3 +106,88 @@ bool Block::isValidTransaction()
     return true;
 }
 
+
+// Converting a block to a string to be sent over network
+ string Block::serialize() 
+ {
+    stringstream ss;
+    ss << timestamp << "|" << previous_hash << "|" << nonce << "|"
+     << hash << "|" << transactions.size() << "|";
+    for (const auto& tx : transactions)
+    {
+        ss << tx.serializer() << ";";
+    }
+    return ss.str();
+ }
+ 
+
+ // Converting a string back into a block.
+ Block Block::deserialize(const string& data)
+ {
+    stringstream ss(data);
+    string item;
+
+    getline(ss, item, '|'); 
+    time_t timestamp = stoll(item);
+    getline(ss, item, '|'); 
+    string prev_hash = item;
+    getline(ss, item, '|');
+    int nonce_i = stoi(item);
+    getline(ss, item, '|');
+    string hash_i = item;
+    getline(ss, item, '|');
+    int tx_count = stoi(item);
+
+    vector<Transaction> transactions;
+    for (int i =0; i < tx_count; i++)
+    {
+        getline(ss, item, ';');
+        transactions.push_back(Transaction::deserializer(item));
+    }
+
+    Block block(timestamp, transactions, prev_hash);
+    block.nonce =  nonce_i;
+    block.hash = hash_i;
+    return block;
+ }
+
+
+/* Blockchain Implementation*/
+
+// Creating the first block in the chain by using the constructor 
+// "Genesis Block"
+Blockchain::Blockchain() : difficulty(4), mining_reward(100.0)
+{
+    vector<Transaction> genesis_txs;
+    chain.emplace_back(time(nullptr), genesis_txs, "0");
+}
+
+Block Blockchain::getLatestBlock() const
+{
+    return chain.back();
+}
+
+// Adding a pre-mined block to the chain. This will be used
+// when adding a block from the network.
+void Blockchain::addBlock(const Block& new_block)
+{
+    if(new_block.getPreviousHash() == getLatestBlock().getHash())
+    {
+        chain.push_back(new_block);
+    }
+    else
+    {
+        throw runtime_error("Cannot add block: Previous hash didn't match.");
+    }
+}
+
+/* Creating a new block with all pending transactions and then will mine it*/
+void Blockchain::minePendingTransaction(const string& miner_address)
+{
+    //Creating the reward transaction for the miner of the block
+    Transaction reward_tx;
+    reward_tx.sending_address = "0"; // system generated reward
+    reward_tx.receiving_address = miner_address;
+    reward_tx.amount = mining_reward;
+    reward_tx.id = reward_tx.calculate_Hash();
+}
