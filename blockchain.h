@@ -13,13 +13,15 @@ using namespace std;
 struct Transaction
 {
     string id; 
-    string sender_address;
+    string sending_address;
     string receiving_address;
     double amount;
     string file_metadata; // For file transfers
     time_t timestamp;
     string signature;
     string calculate_Hash();
+    string serializer();
+    Transaction deserializer(const string& data);
     bool isValid();
 };
 
@@ -35,11 +37,11 @@ public:
     string serialize();
     static Block deserialize(const string& data);
 private:
-    time_t timestamp_;
-    vector<Transaction> transactions_;
-    string previous_hash_;
-    string hash_;
-    int nonce_;
+    time_t timestamp;
+    vector<Transaction> transactions;
+    string previous_hash;
+    string hash;
+    int nonce;
     string calculateHash();
 };
 
