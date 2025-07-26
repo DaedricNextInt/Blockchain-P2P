@@ -201,3 +201,86 @@ void Blockchain::minePendingTransaction(const string& miner_address)
     pending_transactions.clear();
 }
 
+
+// Validating a transaction before adding it the pending pool
+void Blockchain::addTransaction(const Transaction& tx)
+{
+    if (tx.sender_address.empty() || tx.receiving_address.empty())
+    {
+        throw runtime_error("Transaction must include sender and receiver address.");
+    }
+    if (!tx.isValid())
+    {
+        throw runtime_error("Cannot add invalid transaction to chain.");
+    }
+    if (tx.amount > 0 && !hasSufficientFunds(tx.sender_address, tx.amount))
+    {
+        throw runtime_error("Insufficient funds for transaction.");
+    }
+    pending_transactions.push_back(tx);
+}
+
+// Calculating a wallet's balance by summing up all transactions within each block
+double Blockchain::getBalance(const string& address)
+{
+    if (address.empty())
+    {
+        return 0.0;
+    }
+
+    double balance = 0.0;
+    for (const auto& chain)
+    {
+        for (const auto& tx : block.getTransactions())
+        {
+            if (tx.sender_address == address)
+            {
+                balance += tx.amount;
+            }
+        }
+    }
+
+    return balance;
+}
+
+bool Blockchain::hasSufficientFunds(const string & sender_address, double amount)
+{
+    return getBalance(sender_address) >= amount;
+}
+
+// Verifying the integrety of the blockchain.
+bool Blockchain::isChainValid()
+{
+    for (size_t i = 1; i < chain.size(); i++)
+    {
+        const Block& current_block = chain[i];
+        const Block& previous_block = chain[i - 1];
+
+       if (!current_block.hasValidTransactions())
+       {
+        return false;
+       } 
+
+       if (current_block.getHash() != current_block.calculate_Hash())
+       {
+        return false;
+       }
+
+       if (current_block.getPreviousHash() != previous_block.getHash())
+       {
+        return false;
+       }
+    }
+    return true;
+}
+
+
+// If a peer sends a longer or valid chain then adopt it
+void Blockchain::replaceChain(const vector<Block>& new_chain)
+{
+    if (new_chain.size() > chain.size())
+    {
+        cout << "Longer chain detected. Replacing current chain" << endl;
+        chain = new_chain;
+    }
+}
