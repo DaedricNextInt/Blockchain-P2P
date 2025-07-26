@@ -190,4 +190,14 @@ void Blockchain::minePendingTransaction(const string& miner_address)
     reward_tx.receiving_address = miner_address;
     reward_tx.amount = mining_reward;
     reward_tx.id = reward_tx.calculate_Hash();
+    pending_transactions.push_back(reward_tx);
+
+    //Creating a newer block to mine
+    Block new_block(time(nullptr), pending_transactions, getLatestBlock().getHash());
+    new_block.mineBlock(difficulty);
+    chain.push_back(new_block);
+
+    //Clearing each pending transaction
+    pending_transactions.clear();
 }
+
