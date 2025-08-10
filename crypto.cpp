@@ -9,6 +9,7 @@
 
 Wallet::Wallet() : rsa_key(nullptr) {}
 
+//Getting an error about RSA being deprecated.
 Wallet::~Wallet()
 {
     if (rsa_key)

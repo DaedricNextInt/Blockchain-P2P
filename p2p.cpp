@@ -1,4 +1,3 @@
-#include "p2p.h"
 #include <iostream>
 #include <thread>
 #include <vector>
@@ -6,6 +5,8 @@
 #include <string>
 #include <cstring>
 #include <algorithm>
+#include "p2p.h"
+#include "blockchain.h"
 
 using namespace std;
 
@@ -40,6 +41,7 @@ static mutex peers_mutex;
 static int next_peer_id = 0;
 static BlockCallback block_received; // notify of new blocks.
 static TxCallback tx_received;       // notify of new transactions
+static ChainCallback chain_received;
 
 
 void handle_peer_connection(SOCKET peer_socket, string ip, int port)
@@ -66,7 +68,8 @@ void handle_peer_connection(SOCKET peer_socket, string ip, int port)
             break;
         }
 
-        string message(bufferm bytes_received);
+        // Message Protocols
+        string message(buffer, bytes_received);
         if (message.rfind("BLOCK:", 0) == 0)
         {
             string block_data = message.substr(6);
@@ -75,12 +78,27 @@ void handle_peer_connection(SOCKET peer_socket, string ip, int port)
             {
                 block_received(Block::deserialize(block_data));
             }
-            else if (message.rfind("TX:" 0) == 0)
+            else if (message.rfind("TX:", 0) == 0)
             {
                 string tx_data = message.substr(3);
                 if (tx_received)
                 {
-                    tx_received(Transaction::deserialize(tx_data));
+                    tx_received(Transaction::deserializer(tx_data));
+                }
+            }
+            else if (message.rfind("GET_CHAIN", 0) == 0)
+            {
+                if (chain_received)
+                {
+                    P2P::sendToPeer(current_peer_id, "CHAIN_RESP:");
+                }
+            }
+            else if (message.rfind("CHAIN_RESP:", 0) == 0)
+            {
+                string chain_data = message.substr(11);
+                if (chain_received)
+                {
+                    chain_received(chain_data);
                 }
             }
         }
@@ -103,6 +121,7 @@ void P2P::startServer(int port, BlockCallback on_block, TxCallback on_tx)
 {
     block_received = on_block;
     tx_received = on_tx;
+    chain_received = chain;
 
 #ifdef _WIN32
     WSADATA wsaData;
@@ -173,7 +192,7 @@ void P2P::listPeers()
         cout << "Connected Peers:" << endl;
         for (const auto& peer : peers)
         {
-            cout << " ID: " << peer.id << " -> " << peer.ip << ":" peer.port << endl;
+            cout << " ID: " << peer.id << " -> " << peer.ip << ":" << peer.port << endl;
         }
     }
 }

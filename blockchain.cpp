@@ -167,8 +167,21 @@ Block Blockchain::getLatestBlock() const
     return chain.back();
 }
 
+
+// Getter method for grabbing the chain
+vector<Block> Blockchain::getChain() const
+{
+    return chain;
+}
+
 // Adding a pre-mined block to the chain. This will be used
 // when adding a block from the network.
+
+/* Whats happening is a race condition. Both systems that are mining the
+   block aren't adopting the same block. 
+
+   In order to fix you would need to just update to the longest block.
+*/
 void Blockchain::addBlock(const Block& new_block)
 {
     if(new_block.getPreviousHash() == getLatestBlock().getHash())
@@ -248,7 +261,7 @@ bool Blockchain::hasSufficientFunds(const string & sending_address, double amoun
     return getBalance(sending_address) >= amount;
 }
 
-// Verifying the integrety of the blockchain.
+// Verifying the integrity of the chain
 bool Blockchain::isChainValid()
 {
     for (size_t i = 1; i < chain.size(); i++)

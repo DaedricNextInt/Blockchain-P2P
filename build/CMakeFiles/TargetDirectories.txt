@@ -1,0 +1,3 @@
+/home/daedric/Desktop/PROJECTS/Blockchain-P2P/build/CMakeFiles/p2p_wallet.dir
+/home/daedric/Desktop/PROJECTS/Blockchain-P2P/build/CMakeFiles/edit_cache.dir
+/home/daedric/Desktop/PROJECTS/Blockchain-P2P/build/CMakeFiles/rebuild_cache.dir

@@ -59,7 +59,7 @@ public:
     double getBalance(const string& addr);
     bool hasSufficientFunds(const string& sender_address, double amount);
 
-    vector<Block> getChain();
+    vector<Block> getChain() const;
     void replaceChain(const vector<Block>& new_chain);
 private:
     vector<Block> chain;

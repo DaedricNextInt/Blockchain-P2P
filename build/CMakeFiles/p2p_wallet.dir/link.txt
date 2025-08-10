@@ -1,0 +1,1 @@
+/usr/bin/c++ -Wl,--dependency-file=CMakeFiles/p2p_wallet.dir/link.d CMakeFiles/p2p_wallet.dir/main.cpp.o CMakeFiles/p2p_wallet.dir/blockchain.cpp.o CMakeFiles/p2p_wallet.dir/crypto.cpp.o CMakeFiles/p2p_wallet.dir/p2p.cpp.o -o p2p_wallet  /usr/lib/libssl.so /usr/lib/libcrypto.so

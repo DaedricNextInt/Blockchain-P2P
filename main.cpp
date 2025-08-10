@@ -14,22 +14,29 @@ static Wallet my_wallet;
 void handle_received_block(const Block& block)
 {
     cout << "\n[Network] Received new block from a peer." << endl;
-    try 
+    
+    const Block& latest_block = my_blockchain.getLatestBlock();
+
+    if (block.getPreviousHash() == latest_block.getHash())
     {
-        // Add the block to the chain
-        my_blockchain.addBlock(block);
-        cout << "[SYSTEM] Block is valid and has been added to the chain." << endl;
-        // Notify the user of a new balance
-        if(!my_wallet.getAddress().empty())
+        try
         {
-            double new_balance = my_blockchain.getBalance(my_wallet.getAddress());
-            cout << "[WALLET] Your new balance is: " << new_balance << endl;
+            my_blockchain.addBlock(block);
+            cout << "\n[SYSTEM] Appended new block to chain." << endl;
+        }
+        catch (const runtime_error& e) 
+        {
+            cerr << "\n[SYSTEM] Error appending block: " << e.what() << endl;
         }
     }
-    catch (const runtime_error& e)
+
+    else if (block.getPreviousHash() > latest_block.getHash())
     {
-        cerr << "[SYSTEM] Received block is invalid: " << e.what() << endl;
+        cout << "\n[SYSTEM] Blockchain fork detected. Requesting chain from " 
+        << peer_id << " for synchronization." << endl;
+        P2P::sendToPeer(peer_id, "GET_CHAIN");
     }
+
     cout << "> " << flush;
 }
 
