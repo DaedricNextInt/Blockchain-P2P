@@ -30,10 +30,11 @@ class Block {
 public: 
     Block(time_t timestamp, vector<Transaction> transactions, string previous_hash);
 
-    string getHash(){return hash;}
+    string getHash() const {return hash;}
     string getPreviousHash() const {return previous_hash;}
+    vector<Transaction> getTransactions() const { return transactions;}
     void mineBlock(int difficulty);
-    bool isValidTransaction();
+    bool isValidTransaction() const;
     string serialize();
     static Block deserialize(const string& data);
 private:

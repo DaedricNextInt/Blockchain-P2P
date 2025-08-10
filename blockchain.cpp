@@ -1,6 +1,6 @@
 #include "blockchain.h"
 #include <iostream>
-#include <sstream>> 
+#include <sstream> 
 
 using namespace std;
 
@@ -93,7 +93,7 @@ void Block::mineBlock(int difficulty)
 }
 
 // Validating all transactions within the Block
-bool Block::isValidTransaction()
+bool Block::isValidTransaction() const
 {
     for(const auto& tx : transactions)
     {
@@ -205,7 +205,7 @@ void Blockchain::minePendingTransaction(const string& miner_address)
 // Validating a transaction before adding it the pending pool
 void Blockchain::addTransaction(const Transaction& tx)
 {
-    if (tx.sender_address.empty() || tx.receiving_address.empty())
+    if (tx.sending_address.empty() || tx.receiving_address.empty())
     {
         throw runtime_error("Transaction must include sender and receiver address.");
     }
@@ -213,7 +213,7 @@ void Blockchain::addTransaction(const Transaction& tx)
     {
         throw runtime_error("Cannot add invalid transaction to chain.");
     }
-    if (tx.amount > 0 && !hasSufficientFunds(tx.sender_address, tx.amount))
+    if (tx.amount > 0 && !hasSufficientFunds(tx.sending_address, tx.amount))
     {
         throw runtime_error("Insufficient funds for transaction.");
     }
@@ -229,11 +229,11 @@ double Blockchain::getBalance(const string& address)
     }
 
     double balance = 0.0;
-    for (const auto& chain)
+    for (const auto& block : chain)
     {
         for (const auto& tx : block.getTransactions())
         {
-            if (tx.sender_address == address)
+            if (tx.sending_address == address)
             {
                 balance += tx.amount;
             }
@@ -243,9 +243,9 @@ double Blockchain::getBalance(const string& address)
     return balance;
 }
 
-bool Blockchain::hasSufficientFunds(const string & sender_address, double amount)
+bool Blockchain::hasSufficientFunds(const string & sending_address, double amount)
 {
-    return getBalance(sender_address) >= amount;
+    return getBalance(sending_address) >= amount;
 }
 
 // Verifying the integrety of the blockchain.
@@ -256,12 +256,12 @@ bool Blockchain::isChainValid()
         const Block& current_block = chain[i];
         const Block& previous_block = chain[i - 1];
 
-       if (!current_block.hasValidTransactions())
+       if (!current_block.isValidTransaction())
        {
         return false;
        } 
 
-       if (current_block.getHash() != current_block.calculate_Hash())
+       if (current_block.getHash() != current_block.calculateHash())
        {
         return false;
        }

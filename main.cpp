@@ -4,10 +4,11 @@
 #include <iostream>
 #include <thread>
 #include <chrono>
+#include <sstream>
 
 // Global objects for a node's Blockchain & Wallet
 static Blockchain my_blockchain;
-static Walllet my_wallet;
+static Wallet my_wallet;
 
 // Handling received blocks
 void handle_received_block(const Block& block)
@@ -43,7 +44,7 @@ void handle_received_tx(const Transaction& tx)
     }
     catch (const runtime_error& e)
     {
-        cout << "\n[NETWORK] Received invalid transaction: " << e.wha() << endl;
+        cout << "\n[NETWORK] Received invalid transaction: " << e.what() << endl;
     }
     cout << "> " << flush;
 }
@@ -109,7 +110,7 @@ void cli_interface()
                 cout << "You must load a wallet first to receive mining rewards." << endl;
             }
             cout << "Mining pending transactions..." << endl;
-            my_blockchain.minePendingTransactions(my_wallet.getAddress());
+            my_blockchain.minePendingTransaction(my_wallet.getAddress());
             cout << "Block sucessfully mined! Broadcasting to network..." << endl;
         
             P2P::broadcast("BLOCK:" + my_blockchain.getLatestBlock().serialize());
@@ -144,7 +145,7 @@ void cli_interface()
             }
 
             Transaction tx;
-            tx.sender_address = my_wallet.getPublicKey();
+            tx.sending_address = my_wallet.getPublicKey();
             tx.receiving_address = to_address;
             tx.amount = amount;
             tx.timestamp = time(nullptr);
@@ -155,7 +156,7 @@ void cli_interface()
             {
                 my_blockchain.addTransaction(tx);
                 cout << "Transaction added to pending pool. Broadcasting to network..." << endl;
-                P2P::broadcast("Tx:" + tx.serialize());
+                P2P::broadcast("Tx:" + tx.serializer());
             }
             catch (const runtime_error& e)
             {
@@ -170,7 +171,7 @@ void cli_interface()
         {
             for (const auto& block : my_blockchain.getChain())
             {
-                cout << "Prev Hash: " << block.getPreviousHash() << " | Hash: " << blcok.getHash() << endl;
+                cout << "Prev Hash: " << block.getPreviousHash() << " | Hash: " << block.getHash() << endl;
             }
         }
         else if (command == "valid")
