@@ -31,6 +31,7 @@ public:
     Block(time_t timestamp, vector<Transaction> transactions, string previous_hash);
 
     string getHash() const {return hash;}
+    string calculateHash() const;
     string getPreviousHash() const {return previous_hash;}
     vector<Transaction> getTransactions() const { return transactions;}
     void mineBlock(int difficulty);
@@ -43,7 +44,7 @@ private:
     string previous_hash;
     string hash;
     int nonce;
-    string calculateHash();
+    //string calculateHash();
 };
 
 // Class - [Blockchain] represents the entire blockchain

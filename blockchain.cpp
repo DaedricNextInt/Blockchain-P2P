@@ -67,7 +67,7 @@ Block::Block(time_t timestamp, vector<Transaction> transactions, string previous
 // The block's hashed info is all of the data from this 
 // a block and previous blocks. This is what forms the 
 // blockchain as it's a hash of all linked blocks [blockchain]
-string Block::calculateHash() 
+string Block::calculateHash() const
 {
     string tx_hashes;
     for (const auto& tx : transactions) 
