@@ -11,7 +11,7 @@ static Blockchain my_blockchain;
 static Wallet my_wallet;
 
 // Handling received blocks
-void handle_received_block(const Block& block)
+void handle_received_block(const Block& block, int peer_id)
 {
     cout << "\n[Network] Received new block from a peer." << endl;
     
@@ -36,10 +36,34 @@ void handle_received_block(const Block& block)
         << peer_id << " for synchronization." << endl;
         P2P::sendToPeer(peer_id, "GET_CHAIN");
     }
+    else 
+    {
+        cout << "\n[SYSTEM] Received block is older than current head. Ignoring." << endl;
+    }
 
     cout << "> " << flush;
 }
 
+
+
+void handle_received_chain(const string& chain_data)
+{
+    cout << "\n[SYSTEM] Received full chain response from peer." << endl;
+    Blockchain received_chain;
+    received_chain.deserialize(chain_data);
+
+    if (received_chain.isChainValid() && received_chain.getChain().size() > my_blockchain.getChain().size())
+    {
+        my_blockchain.replaceChain(received_chain.getChain());
+        cout << "Sucessfully synchronized to longer chain." << endl;
+    }
+    else 
+    {
+        cout << "[SYSTEM] Received chain is not valid. Keeping current chain." << endl;
+    }
+
+    cout << "> " << flush;
+}
 
 // Handling received transactions
 void handle_received_tx(const Transaction& tx)
@@ -202,7 +226,7 @@ int main(int argc, char* argv[])
 
     int listening_port = stoi(argv[1]);
 
-    P2P::startServer(listening_port, handle_received_block, handle_received_tx);
+    P2P::startServer(listening_port, handle_received_block, handle_received_tx, handle_received_chain);
 
     // If peer is found then connect to it
     if (argc == 4) 

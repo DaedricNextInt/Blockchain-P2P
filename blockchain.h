@@ -59,6 +59,9 @@ public:
     double getBalance(const string& addr);
     bool hasSufficientFunds(const string& sender_address, double amount);
 
+    void deserialize(const string& data);
+    string block_serialize() const;
+
     vector<Block> getChain() const;
     void replaceChain(const vector<Block>& new_chain);
 private:

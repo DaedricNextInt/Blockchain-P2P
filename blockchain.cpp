@@ -154,6 +154,51 @@ bool Block::isValidTransaction() const
 
 /* Blockchain Implementation*/
 
+
+
+//  Serializing the entire blockchain into a single string.
+//  [block_count] | [serialized_block_1] | [serialized_block_2] || ... 
+string Blockchain::block_serialize() const
+{
+    stringstream ss;
+
+    ss << chain.size() << "|";
+
+    for (const auto& block : chain)
+    {
+        ss << block.serializer() << "||";
+    }
+
+    return ss.str();
+}
+
+// Deserializing a string to reconstruct the blockchain. 
+void Blockchain::deserialize(const string& data)
+{
+    stringstream ss(data);
+    string item;
+
+    getline(ss, item, '|');
+    int chain_size = 0;
+
+    if (!item.empty())
+    {
+        chain_size = stoi(item);
+    }
+
+    vector<Block> new_chain;
+
+    for (int i = 0; i < chain_size; i++)
+    {
+        getline(ss, item, '|');
+        getline(ss, item, '|');
+
+        new_chain.push_back(Block::deserialize(item));
+    }
+
+    this->chain = new_chain;
+}
+
 // Creating the first block in the chain by using the constructor 
 // "Genesis Block"
 Blockchain::Blockchain() : difficulty(4), mining_reward(100.0)

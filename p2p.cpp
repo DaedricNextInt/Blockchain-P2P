@@ -76,7 +76,7 @@ void handle_peer_connection(SOCKET peer_socket, string ip, int port)
 
             if (block_received)
             {
-                block_received(Block::deserialize(block_data));
+                block_received(Block::deserialize(block_data), current_peer_id);
             }
             else if (message.rfind("TX:", 0) == 0)
             {
@@ -117,7 +117,7 @@ void handle_peer_connection(SOCKET peer_socket, string ip, int port)
 
 // ---Setting up the server part of the P2P node---
 
-void P2P::startServer(int port, BlockCallback on_block, TxCallback on_tx)
+void P2P::startServer(int port, BlockCallback on_block, TxCallback on_tx, ChainCallback chain)
 {
     block_received = on_block;
     tx_received = on_tx;
@@ -178,6 +178,19 @@ void P2P::broadcast(const string& message)
     for(const auto& peer: peers)
     {
         send(peer.socket, message.c_str(), message.length(), 0);
+    }
+}
+
+void P2P::sendToPeer(int peer_id, const string& message)
+{
+    lock_guard<mutex> lock(peers_mutex);
+    for (const auto& peer : peers)
+    {
+        if (peer.id == peer_id)
+        {
+            send(peer.socket, message.c_str(), message.length(), 0);
+            return;
+        }
     }
 }
 
