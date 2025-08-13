@@ -108,7 +108,7 @@ bool Block::isValidTransaction() const
 
 
 // Converting a block to a string to be sent over network
- string Block::serialize() 
+ string Block::serialize() const
  {
     stringstream ss;
     ss << timestamp << "|" << previous_hash << "|" << nonce << "|"
@@ -166,7 +166,7 @@ string Blockchain::block_serialize() const
 
     for (const auto& block : chain)
     {
-        ss << block.serializer() << "||";
+        ss << block.serialize() << "||";
     }
 
     return ss.str();
@@ -291,9 +291,14 @@ double Blockchain::getBalance(const string& address)
     {
         for (const auto& tx : block.getTransactions())
         {
-            if (tx.sending_address == address)
+            if (tx.receiving_address == address)
             {
                 balance += tx.amount;
+            }
+
+            if (tx.sending_address == address)
+            {
+                balance -= tx.amount;
             }
         }
     }

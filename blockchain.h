@@ -36,7 +36,7 @@ public:
     vector<Transaction> getTransactions() const { return transactions;}
     void mineBlock(int difficulty);
     bool isValidTransaction() const;
-    string serialize();
+    string serialize() const;
     static Block deserialize(const string& data);
 private:
     time_t timestamp;
