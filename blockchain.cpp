@@ -271,7 +271,7 @@ void Blockchain::addTransaction(const Transaction& tx)
     {
         throw runtime_error("Cannot add invalid transaction to chain.");
     }
-    if (tx.amount > 0 && !hasSufficientFunds(tx.sending_address, tx.amount))
+    if (tx.amount < 0 && !hasSufficientFunds(tx.sending_address, tx.amount))
     {
         throw runtime_error("Insufficient funds for transaction.");
     }

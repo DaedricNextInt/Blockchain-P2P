@@ -11,76 +11,39 @@ static Blockchain my_blockchain;
 static Wallet my_wallet;
 
 // Handling received blocks
-/**
- * @brief Handles the logic for processing a new block received from another peer on the network.
- * @param block A constant reference to the Block object that was received.
- * @param peer_id The unique identifier for the peer that sent this block.
- */
 void handle_received_block(const Block& block, int peer_id)
 {
-    // --- Start of debugging output ---
-    cout << "\n\n--- DEBUG: ENTERING handle_received_block ---" << endl;
-    cout << "DEBUG: Received a block from peer_id: " << peer_id << endl;
-    cout << "DEBUG: Hash of received block: " << block.getHash() << endl;
-    cout << "DEBUG: Previous hash of received block: " << block.getPreviousHash() << endl;
-    // --- End of debugging output ---
-
     cout << "\n[Network] Received new block from a peer." << endl;
     
     const Block& latest_block = my_blockchain.getLatestBlock();
 
-    // --- Start of debugging output ---
-    cout << "DEBUG: Hash of our current latest block: " << latest_block.getHash() << endl;
-    // --- End of debugging output ---
-
     if (block.getPreviousHash() == latest_block.getHash())
     {
-        // --- Start of debugging output ---
-        cout << "DEBUG: CONDITION MET - Previous hash matches. Attempting to append block." << endl;
-        // --- End of debugging output ---
         try
         {
             my_blockchain.addBlock(block);
             cout << "\n[SYSTEM] Appended new block to chain." << endl;
-            // --- Start of debugging output ---
-            cout << "DEBUG: Successfully added block. New chain height: " << my_blockchain.getChain().size() << endl;
-            // --- End of debugging output ---
         }
         catch (const runtime_error& e) 
         {
-            // --- Start of debugging output ---
-            cout << "DEBUG: CATCH - Error while adding block to the chain." << endl;
-            // --- End of debugging output ---
             cerr << "\n[SYSTEM] Error appending block: " << e.what() << endl;
         }
     }
+
     else if (block.getPreviousHash() > latest_block.getHash())
     {
-        // --- Start of debugging output ---
-        cout << "DEBUG: CONDITION MET - Fork detected. Received block's prev_hash is greater." << endl;
-        // --- End of debugging output ---
         cout << "\n[SYSTEM] Blockchain fork detected. Requesting chain from " 
         << peer_id << " for synchronization." << endl;
-        
-        // --- Start of debugging output ---
-        cout << "DEBUG: Sending 'GET_CHAIN' message to peer " << peer_id << endl;
-        // --- End of debugging output ---
         P2P::sendToPeer(peer_id, "GET_CHAIN");
     }
     else 
     {
-        // --- Start of debugging output ---
-        cout << "DEBUG: NO CONDITIONS MET - Block is old or from an irrelevant fork. Ignoring." << endl;
-        // --- End of debugging output ---
         cout << "\n[SYSTEM] Received block is older than current head. Ignoring." << endl;
     }
-    
-    // --- Start of debugging output ---
-    cout << "--- DEBUG: EXITING handle_received_block ---" << endl;
-    // --- End of debugging output ---
 
     cout << "> " << flush;
 }
+
 
 
 void handle_received_chain(const string& chain_data)
