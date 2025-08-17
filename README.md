@@ -9,9 +9,8 @@
 ./p2p_wallet 8081 127.0.0.1 8080
 
 ### 3. Use the CLI commands on either peer terminal.
-> createwallet my_wallet.txt
-> loadwallet my_wallet.txt
-> mine
-> checkbalance <wallet_address>
-> sendfunds <receiving_address> 100.5
->  
+- createwallet my_wallet.txt
+- loadwallet my_wallet.txt
+- mine
+- checkbalance <wallet_address>
+- sendfunds <receiving_address> 100.5
