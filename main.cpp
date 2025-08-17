@@ -11,13 +11,25 @@ static Blockchain my_blockchain;
 static Wallet my_wallet;
 
 // Handling received blocks
+
 void handle_received_block(const Block& block, int peer_id)
 {
+
+    // if (block.getHash() == my_blockchain.getLatestBlock().getHash())
+    // {
+    //    cout << "DEBUG: Received a block that is already our latest. Ignoring redundant broadcast." << endl;
+    //    cout << "> " << flush;
+    //    return; // Exit the function early 
+    // }
+    
     cout << "\n[Network] Received new block from a peer." << endl;
     
     const Block& latest_block = my_blockchain.getLatestBlock();
-
-    if (block.getPreviousHash() == latest_block.getHash())
+    // when we receive a block I'm check that it's previous hash is our latest block
+    // [block 0] --> [block1] --> latest_block
+    // [block 3]: block.previousHash() = hash(block 2), index = 3
+    if (block.getPreviousHash() == latest_block.getHash() 
+        && block.getIndex() == latest_block.getIndex() + 1)
     {
         try
         {
@@ -30,7 +42,7 @@ void handle_received_block(const Block& block, int peer_id)
         }
     }
 
-    else if (block.getPreviousHash() > latest_block.getHash())
+    else if (block.getIndex() > latest_block.getIndex())
     {
         cout << "\n[SYSTEM] Blockchain fork detected. Requesting chain from " 
         << peer_id << " for synchronization." << endl;
@@ -202,7 +214,7 @@ void cli_interface()
         {
             for (const auto& block : my_blockchain.getChain())
             {
-                cout << "Prev Hash: " << block.getPreviousHash() << " | Hash: " << block.getHash() << endl;
+                cout << "Index: " << block.getIndex() << "Prev Hash: " << block.getPreviousHash() << " | Hash: " << block.getHash() << endl;
             }
         }
         else if (command == "valid")

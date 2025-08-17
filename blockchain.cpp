@@ -58,7 +58,7 @@ Transaction Transaction::deserializer(const string& data)
 
 /*Block Implementation*/
 
-Block::Block(time_t timestamp, vector<Transaction> transactions, string previous_hash) 
+Block::Block(int index, time_t timestamp, vector<Transaction> transactions, string previous_hash) 
 : timestamp(timestamp), transactions(transactions), previous_hash(previous_hash), nonce(0)
 {
     hash = calculateHash(); 
@@ -74,7 +74,7 @@ string Block::calculateHash() const
     {
         tx_hashes += tx.id;
     }
-    return Crypto::sha256(previous_hash + to_string(timestamp) 
+    return Crypto::sha256(to_string(index) + previous_hash + to_string(timestamp) 
     + tx_hashes + to_string(nonce));
 }
 
@@ -111,7 +111,7 @@ bool Block::isValidTransaction() const
  string Block::serialize() const
  {
     stringstream ss;
-    ss << timestamp << "|" << previous_hash << "|" << nonce << "|"
+    ss << index << "|" << timestamp << "|" << previous_hash << "|" << nonce << "|"
      << hash << "|" << transactions.size() << "|";
     for (const auto& tx : transactions)
     {
@@ -126,7 +126,9 @@ bool Block::isValidTransaction() const
  {
     stringstream ss(data);
     string item;
-
+    
+    getline(ss, item, '|');
+    int index = stoi(item);
     getline(ss, item, '|'); 
     time_t timestamp = stoll(item);
     getline(ss, item, '|'); 
@@ -139,13 +141,13 @@ bool Block::isValidTransaction() const
     int tx_count = stoi(item);
 
     vector<Transaction> transactions;
-    for (int i =0; i < tx_count; i++)
+    for (int i = 0; i < tx_count; i++)
     {
         getline(ss, item, ';');
         transactions.push_back(Transaction::deserializer(item));
     }
 
-    Block block(timestamp, transactions, prev_hash);
+    Block block(index, timestamp, transactions, prev_hash);
     block.nonce =  nonce_i;
     block.hash = hash_i;
     return block;
@@ -204,7 +206,7 @@ void Blockchain::deserialize(const string& data)
 Blockchain::Blockchain() : difficulty(4), mining_reward(100.0)
 {
     vector<Transaction> genesis_txs;
-    chain.emplace_back(time(nullptr), genesis_txs, "0");
+    chain.emplace_back(0, time(nullptr), genesis_txs, "0");
 }
 
 Block Blockchain::getLatestBlock() const
@@ -229,14 +231,15 @@ vector<Block> Blockchain::getChain() const
 */
 void Blockchain::addBlock(const Block& new_block)
 {
-    if(new_block.getPreviousHash() == getLatestBlock().getHash())
+    if(new_block.getPreviousHash() != getLatestBlock().getHash())
     {
-        chain.push_back(new_block);
+        throw runtime_error("Cannot add block: Previous hash doesn't match.");
     }
     else
     {
-        throw runtime_error("Cannot add block: Previous hash didn't match.");
+        throw runtime_error("Cannot add block: Invalid block index.");
     }
+    chain.push_back(new_block);
 }
 
 /* Creating a new block with all pending transactions and then will mine it*/
@@ -251,7 +254,8 @@ void Blockchain::minePendingTransaction(const string& miner_address)
     pending_transactions.push_back(reward_tx);
 
     //Creating a newer block to mine
-    Block new_block(time(nullptr), pending_transactions, getLatestBlock().getHash());
+    int new_index = getLatestBlock().getIndex() + 1;
+    Block new_block(new_index, time(nullptr), pending_transactions, getLatestBlock().getHash());
     new_block.mineBlock(difficulty);
     chain.push_back(new_block);
 
@@ -330,6 +334,10 @@ bool Blockchain::isChainValid()
        }
 
        if (current_block.getPreviousHash() != previous_block.getHash())
+       {
+        return false;
+       }
+       if (current_block.getIndex() != previous_block.getIndex() + 1)
        {
         return false;
        }

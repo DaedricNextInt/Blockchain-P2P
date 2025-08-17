@@ -28,8 +28,9 @@ struct Transaction
 // Class - [Block] for representation of a block within a blockchain
 class Block {
 public: 
-    Block(time_t timestamp, vector<Transaction> transactions, string previous_hash);
+    Block(int index, time_t timestamp, vector<Transaction> transactions, string previous_hash);
 
+    int getIndex() const {return index; }
     string getHash() const {return hash;}
     string calculateHash() const;
     string getPreviousHash() const {return previous_hash;}
@@ -39,6 +40,7 @@ public:
     string serialize() const;
     static Block deserialize(const string& data);
 private:
+    int index;
     time_t timestamp;
     vector<Transaction> transactions;
     string previous_hash;
